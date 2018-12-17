@@ -1,0 +1,27 @@
+image: node:8.10
+
+stages:
+    - build
+    - deploy
+
+cache:
+    paths:
+        - node_modules
+
+build:
+    stage: build
+    script:
+        - npm install
+    artifacts:
+        paths:
+            - node_modules
+
+deploy:
+    stage: deploy
+    before_script:
+        - npm i semantic-release@15 @semantic-release/npm
+    script:
+        - npm run build
+        - npx semantic-release -e @semantic-release/npm
+    only:
+        - master
