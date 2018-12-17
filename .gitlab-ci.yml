@@ -11,7 +11,7 @@ cache:
 build:
     stage: build
     script:
-        - npm install
+        - npm install eris eris-command-framework
     artifacts:
         paths:
             - node_modules
