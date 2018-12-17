@@ -105,7 +105,7 @@ export default class extends AbstractPlugin {
             ),
         ).forEach(
             (command: CommandInfo) => {
-                const plugin: string = command.Plugin.constructor.name;
+                const plugin: string = (command.Plugin.constructor as any).Name;
                 if (!plugins.containsKey(plugin)) {
                     plugins.setValue(plugin, []);
                 }
