@@ -16,8 +16,8 @@
         "ts-lint":          "^4.5.1",
         "typescript":       "^3.2.2"
     },
-    "release": {
-
+    "publishConfig": {
+        "access": "public"
     },
     "peerDependencies": {
         "eris":                   "^0.9",
