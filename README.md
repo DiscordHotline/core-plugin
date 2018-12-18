@@ -1,4 +1,4 @@
-# @hotline/core-plugin
+# @hotline/core-plugin [![Build Status](https://travis-ci.org/DiscordHotline/core-plugin.svg?branch=master)](https://travis-ci.org/DiscordHotline/core-plugin)
 
 This is the core plugin, and a great learning place, for the hotline discord bot.
 
