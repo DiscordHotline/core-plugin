@@ -11,7 +11,7 @@ cache:
 build:
     stage: build
     script:
-        - npm install eris eris-command-framework
+        - npm install
     artifacts:
         paths:
             - node_modules
@@ -19,7 +19,8 @@ build:
 deploy:
     stage: deploy
     before_script:
-        - npm i semantic-release@15 @semantic-release/npm
+        - npm install -g npm-install-peers semantic-release@15 @semantic-release/npm
+        - npm-install-peers
     script:
         - npm run build
         - npx semantic-release -e @semantic-release/npm
