@@ -6,8 +6,9 @@ node_js:
 sudo: false
 
 install:
+    - npm i -g semantic-release@15 @semantic-release/npm npm-peer-install
     - npm i
-    - npm i semantic-release@15 @semantic-release/npm
+    - npm-peer-install
 
 script:
     - npm run build
