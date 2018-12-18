@@ -1,7 +1,7 @@
 {
     "name":             "@hotline/core-plugin",
     "pluginTitle":      "Core",
-    "version":          "1.0.0",
+    "version":          "1.0.1",
     "description":      "Core Plugin for the Hotline Bot",
     "main":             "index.js",
     "types":            "index.d.ts",
