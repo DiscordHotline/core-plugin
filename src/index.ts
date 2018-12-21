@@ -14,11 +14,11 @@ import Evaluator from './Evaluator/Evaluator';
 
 @injectable()
 export default class extends AbstractPlugin {
-    public static AddToContainer(container: Container): void {
+    public static addToContainer(container: Container): void {
         container.bind<Evaluator>('Evaluator').to(Evaluator);
     }
 
-    public static GetEntities(): any[] {
+    public static getEntities(): any[] {
         return [];
     }
 
