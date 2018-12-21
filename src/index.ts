@@ -22,10 +22,10 @@ export default class extends AbstractPlugin {
         return [];
     }
 
-    @inject(CFTypes.Command.Service)
+    @inject(CFTypes.command.service)
     private commands: CommandService;
 
-    @inject(CFTypes.Security.Authorizer)
+    @inject(CFTypes.security.authorizer)
     private authorizer: Authorizer;
 
     @inject('Evaluator')
@@ -36,14 +36,14 @@ export default class extends AbstractPlugin {
     @Decorator.Command('ping', 'Pings the bot!')
     @Decorator.Permission('ping')
     public async PingCommand(): Promise<void> {
-        await this.ReactOk();
+        await this.reactOk();
     }
 
     @Decorator.Command('restart', 'Restarts the bot')
     @Decorator.Permission('restart')
     public async RestartCommand(): Promise<void> {
-        await this.ReactOk();
-        await this.Client.editStatus('dnd', {name: 'Restarting'});
+        await this.reactOk();
+        await this.client.editStatus('dnd', {name: 'Restarting'});
 
         setTimeout(
             () => {
@@ -58,54 +58,54 @@ export default class extends AbstractPlugin {
         let builder: StringBuilder = new StringBuilder();
 
         if (commandName !== null) {
-            const searchResult: SearchResult = await this.commands.SearchAsync(this.Context, commandName);
-            if (!searchResult.IsSuccess) {
-                return await this.Reply('There is no command with that name.');
+            const searchResult: SearchResult = await this.commands.searchAsync(this.context, commandName);
+            if (!searchResult.isSuccess) {
+                return await this.reply('There is no command with that name.');
             }
 
-            return await this.EmbedMessage(
+            return await this.embedMessage(
                 (x) => {
                     const command: CommandInfo = searchResult.Commands[0];
-                    command.ShortDescription   = command.ShortDescription.replace(/{p(refix)?}/g, this.prefix);
-                    command.LongDescription    = command.LongDescription.replace(/{p(refix)?}/g, this.prefix);
+                    command.shortDescription   = command.shortDescription.replace(/{p(refix)?}/g, this.prefix);
+                    command.longDescription    = command.longDescription.replace(/{p(refix)?}/g, this.prefix);
 
-                    x.Title = command.Aliases[0];
-                    if (command.ShortDescription) {
-                        x.Description = command.ShortDescription;
+                    x.title = command.aliases[0];
+                    if (command.shortDescription) {
+                        x.description = command.shortDescription;
                     }
 
-                    if (command.LongDescription && command.LongDescription !== command.ShortDescription) {
-                        x.Fields.push({Inline: true, Name: '__Long Description__', Value: command.LongDescription});
+                    if (command.longDescription && command.longDescription !== command.shortDescription) {
+                        x.fields.push({inline: true, name: '__Long Description__', value: command.longDescription});
                     }
 
                     const syntax: StringBuilder = new StringBuilder();
                     searchResult.Commands.forEach(
                         (cmd) => {
-                            syntax.AppendLine('`' + cmd.Syntax.replace(/{p(refix)?}/g, this.prefix) + '`');
+                            syntax.appendLine('`' + cmd.syntax.replace(/{p(refix)?}/g, this.prefix) + '`');
                         },
                     );
 
-                    x.Fields.push({Inline: true, Name: '__Syntax__', Value: syntax.toString()});
+                    x.fields.push({inline: true, name: '__Syntax__', value: syntax.toString()});
                 },
             );
         }
 
-        builder.Append(`${this.Client.user.username}\n`);
-        const searchResult: SearchResult = await this.commands.SearchAsync(this.Context);
-        if (!searchResult.IsSuccess || searchResult.Commands.length === 0) {
-            return await this.Reply(builder.toString());
+        builder.append(`${this.client.user.username}\n`);
+        const searchResult: SearchResult = await this.commands.searchAsync(this.context);
+        if (!searchResult.isSuccess || searchResult.Commands.length === 0) {
+            return await this.reply(builder.toString());
         }
 
         const plugins: Dictionary<string, CommandInfo[]> = new Dictionary<string, CommandInfo[]>();
         searchResult.Commands.filter(
-            (command) => this.authorizer.IsAuthorized(
-                command.PermissionNode,
-                this.Context.Member || this.Context.User,
-                command.PermissionStrict,
+            (command) => this.authorizer.isAuthorized(
+                command.permissionNode,
+                this.context.member || this.context.user,
+                command.permissionStrict,
             ),
         ).forEach(
             (command: CommandInfo) => {
-                const plugin: string = (command.Plugin.constructor as any).Name;
+                const plugin: string = (command.plugin.constructor as any).Name;
                 if (!plugins.containsKey(plugin)) {
                     plugins.setValue(plugin, []);
                 }
@@ -114,87 +114,87 @@ export default class extends AbstractPlugin {
             },
         );
 
-        builder.AppendLine();
+        builder.appendLine();
         for (let plugin of plugins.keys()) {
             let commands: any = new List<CommandInfo>(plugins.getValue(plugin))
-                .GroupBy((cmd) => cmd.Aliases[0], (cmd) => cmd);
+                .GroupBy((cmd) => cmd.aliases[0], (cmd) => cmd);
 
             const pluginBuilder: StringBuilder = new StringBuilder();
 
-            pluginBuilder.AppendLine(`\n__*${plugin.replace('Plugin', '')}*__`);
+            pluginBuilder.appendLine(`\n__*${plugin.replace('Plugin', '')}*__`);
             for (let cmdName in commands) {
                 if (!commands.hasOwnProperty(cmdName)) {
                     continue;
                 }
                 const command: any = commands[cmdName][0];
 
-                pluginBuilder.Append(` **${this.prefix}${command.Aliases[0]}**`);
+                pluginBuilder.append(` **${this.prefix}${command.Aliases[0]}**`);
                 if (command.ShortDescription) {
-                    pluginBuilder.Append(' - ' + command.ShortDescription);
+                    pluginBuilder.append(' - ' + command.ShortDescription);
                 }
-                pluginBuilder.AppendLine();
+                pluginBuilder.appendLine();
             }
 
             if (pluginBuilder.toString().length + builder.toString().length > 1900) {
-                await this.Reply(builder.toString());
-                builder.Clear();
+                await this.reply(builder.toString());
+                builder.clear();
             }
 
-            builder.Append(pluginBuilder.toString());
+            builder.append(pluginBuilder.toString());
         }
 
-        builder.Append(`\n\nType \`${this.prefix}help <command>\` for more info on a command.`);
+        builder.append(`\n\nType \`${this.prefix}help <command>\` for more info on a command.`);
 
-        await this.Reply(builder.toString());
+        await this.reply(builder.toString());
     }
 
     @Decorator.Command('stats', 'Gets information about the bot')
     @Decorator.Permission('stats')
     public async StatsCommand(): Promise<void> {
-        const app: { owner: User } = await this.Client.getOAuthApplication() as any;
+        const app: { owner: User } = await this.client.getOAuthApplication() as any;
 
-        await this.EmbedMessage(
+        await this.embedMessage(
             (x) => {
-                x.Author      = {
-                    IconUrl: this.Client.user.avatarURL
+                x.author    = {
+                    iconUrl: this.client.user.avatarURL
                              || 'https://canary.discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png',
-                    Name:    this.Client.user.username,
+                    name:    this.client.user.username,
                 };
-                x.Title       = `By: ${app.owner.username} (${app.owner.id})`;
-                x.Thumbnail   = {
-                    Url: this.Client.user.avatarURL
+                x.title     = `By: ${app.owner.username} (${app.owner.id})`;
+                x.thumbnail = {
+                    url: this.client.user.avatarURL
                          || 'https://canary.discordapp.com/assets/6debd47ed13483642cf09e832ed0bc1b.png',
                 };
-                x.Footer      = {
-                    Text: `Uptime: ${format(this.Client.uptime / 1000)} | ` +
+                x.footer    = {
+                    text: `Uptime: ${format(this.client.uptime / 1000)} | ` +
                           `Memory Usage: ${formatSizeUnits(process.memoryUsage().heapUsed)}`,
                 };
-                x.Fields.push(
+                x.fields.push(
                     {
-                        Inline: true,
-                        Name:   '__Servers__:',
-                        Value:  '' + this.Client.guilds.size,
+                        inline: true,
+                        name:   '__Servers__:',
+                        value:  '' + this.client.guilds.size,
                     },
                 );
-                x.Fields.push(
+                x.fields.push(
                     {
-                        Inline: true,
-                        Name:   '__Channels__:',
-                        Value:  '' + this.Client.guilds.map((y) => (y).channels.size).reduce((a, b) => a + b, 0),
+                        inline: true,
+                        name:   '__Channels__:',
+                        value:  '' + this.client.guilds.map((y) => (y).channels.size).reduce((a, b) => a + b, 0),
                     },
                 );
-                x.Fields.push(
+                x.fields.push(
                     {
-                        Inline: true,
-                        Name:   '__Users__:',
-                        Value:  '' + this.Client.users.size,
+                        inline: true,
+                        name:   '__Users__:',
+                        value:  '' + this.client.users.size,
                     },
                 );
-                x.Fields.push(
+                x.fields.push(
                     {
-                        Inline: true,
-                        Name:   '__Servers__:',
-                        Value:  '' + this.Client.guilds.map((y) => `${y.name}#${y.id}`).join('\n'),
+                        inline: true,
+                        name:   '__Servers__:',
+                        value:  '' + this.client.guilds.map((y) => `${y.name}#${y.id}`).join('\n'),
                     },
                 );
             },
@@ -218,7 +218,7 @@ export default class extends AbstractPlugin {
         let response;
         let error;
         try {
-            response = await this.evaluator.Evaluate(code, {Context: this.Context});
+            response = await this.evaluator.Evaluate(code, {Context: this.context});
         } catch (e) {
             error = e;
         }
@@ -232,22 +232,22 @@ export default class extends AbstractPlugin {
         }
 
         if (error) {
-            return await this.EmbedMessage(
+            return await this.embedMessage(
                 (x) => {
-                    x.Author      = Object.assign({}, x.Author, {Name: 'Error executing eval!'});
-                    x.Title       = error.message;
-                    x.Description = error.stack || error;
-                    x.Color       = 0xFF0000;
+                    x.author      = Object.assign({}, x.author, {Name: 'error executing eval!'});
+                    x.title       = error.message;
+                    x.description = error.stack || error;
+                    x.color       = 0xFF0000;
                 },
             );
         }
 
-        await this.EmbedMessage(
+        await this.embedMessage(
             (x) => {
-                x.Author      = Object.assign({}, x.Author, {Name: 'Execution Success!'});
-                x.Title       = 'Response: ';
-                x.Description = '' + response;
-                x.Color       = 0x00FF00;
+                x.author      = Object.assign({}, x.author, {Name: 'Execution Success!'});
+                x.title       = 'Response: ';
+                x.description = '' + response;
+                x.color       = 0x00FF00;
             },
         );
     }
@@ -255,24 +255,24 @@ export default class extends AbstractPlugin {
     @Decorator.Command('repl', 'Opens a read–eval–print loop')
     @Decorator.Permission('Owner')
     public async REPLCommand(): Promise<void> {
-        if (this.repls[this.Context.User.id]) {
-            return await this.Reply(`REPL already open. Type ${this.prefix}quitRepl to quit.`);
+        if (this.repls[this.context.user.id]) {
+            return await this.reply(`REPL already open. Type ${this.prefix}quitRepl to quit.`);
         }
 
-        this.repls.push(this.Context.User.id);
+        this.repls.push(this.context.user.id);
 
         let context: any[] = [];
-        await this.Reply(`REPL is now open. Type ${this.prefix}quitRepl to quit.`);
+        await this.reply(`REPL is now open. Type ${this.prefix}quitRepl to quit.`);
         let repl: Function = async (message: Message) => {
-            if (message.author.id !== this.Context.User.id) {
+            if (message.author.id !== this.context.user.id) {
                 return;
             }
 
             if (message.content === `${this.prefix}quitRepl`) {
-                this.repls.slice(this.repls.findIndex((x) => x === this.Context.User.id), 1);
-                this.Client.removeListener('messageCreate', repl as any);
+                this.repls.slice(this.repls.findIndex((x) => x === this.context.user.id), 1);
+                this.client.removeListener('messageCreate', repl as any);
 
-                return await this.Reply('REPL is now closed.');
+                return await this.reply('REPL is now closed.');
             }
 
             let code: string = message.content;
@@ -290,7 +290,7 @@ export default class extends AbstractPlugin {
             let error;
             try {
                 const allCode: string = context.join('\n') + '\n' + code;
-                response              = await this.evaluator.Evaluate(allCode, {Context: this.Context});
+                response              = await this.evaluator.Evaluate(allCode, {Context: this.context});
             } catch (e) {
                 error = e;
             }
@@ -304,73 +304,73 @@ export default class extends AbstractPlugin {
             }
 
             if (error) {
-                return await this.EmbedMessage(
+                return await this.embedMessage(
                     (x) => {
-                        x.Author      = Object.assign({}, x.Author, {name: 'Error executing eval!'});
-                        x.Title       = error.message;
-                        x.Description = error.stack || error;
-                        x.Color       = 0xFF0000;
+                        x.author      = Object.assign({}, x.author, {name: 'error executing eval!'});
+                        x.title       = error.message;
+                        x.description = error.stack || error;
+                        x.color       = 0xFF0000;
                     },
                 );
             }
 
             context.push(code);
 
-            await this.EmbedMessage(
+            await this.embedMessage(
                 (x) => {
-                    x.Author      = Object.assign({}, x.Author, {name: 'Execution Success!'});
-                    x.Title       = 'Response: ';
-                    x.Description = '' + response;
-                    x.Color       = 0x00FF00;
+                    x.author      = Object.assign({}, x.author, {name: 'Execution Success!'});
+                    x.title       = 'Response: ';
+                    x.description = '' + response;
+                    x.color       = 0x00FF00;
                 },
             );
         };
-        this.Client.on('messageCreate', repl);
+        this.client.on('messageCreate', repl);
     }
 
     @Decorator.Command('permnodes', 'Lists all permission nodes')
     @Decorator.Permission('Owner')
     public async PermissionNodesCommand(): Promise<void> {
         const builder: StringBuilder     = new StringBuilder(['```\n']);
-        const searchResult: SearchResult = await this.commands.SearchAsync(this.Context);
+        const searchResult: SearchResult = await this.commands.searchAsync(this.context);
 
-        if (!searchResult.IsSuccess) {
-            return await this.ReactNotOk();
+        if (!searchResult.isSuccess) {
+            return await this.reactNotOk();
         }
 
         const nodes: string[] = [];
         for (let command of searchResult.Commands) {
-            if (command.PermissionNode && !nodes.find((x) => x === command.PermissionNode)) {
-                nodes.push(command.PermissionNode);
-                builder.AppendLine(command.PermissionNode);
+            if (command.permissionNode && !nodes.find((x) => x === command.permissionNode)) {
+                nodes.push(command.permissionNode);
+                builder.appendLine(command.permissionNode);
             }
         }
 
-        await this.Reply(builder.toString() + '\n```');
+        await this.reply(builder.toString() + '\n```');
     }
 
     @Decorator.Command('perms', 'Lists all current permissions')
     @Decorator.Permission('Owner')
     public async ListPermissionsCommand(): Promise<void> {
-        const perms: Permission[] = (await this.GetRepository<Permission>(Permission)
-                                                     .find({GuildId: this.Context.Guild.id}))
-            .sort((a, b) => a.TypeId > b.TypeId ? 1 : -1);
+        const perms: Permission[] = (await this.getRepository<Permission>(Permission)
+                                               .find({guildId: this.context.guild.id}))
+            .sort((a, b) => a.typeId > b.typeId ? 1 : -1);
 
         if (perms.length === 0) {
-            return await this.Reply('There are currently no permissions here.');
+            return await this.reply('There are currently no permissions here.');
         }
 
         const builder: StringBuilder = new StringBuilder();
-        builder.AppendLine('Index,Type,Discord ID,Node,Allowed');
+        builder.appendLine('Index,type,Discord ID,node,allowed');
         for (let i: number = 0; i < perms.length; i++) {
             let perm: any = perms[i];
-            builder.AppendLine(`${i + 1},${perm.Type},="${perm.TypeId}",${perm.Node},${perm.Allowed ? 'Yes' : 'No'}`);
+            builder.appendLine(`${i + 1},${perm.Type},="${perm.TypeId}",${perm.Node},${perm.Allowed ? 'Yes' : 'No'}`);
         }
 
-        await this.Context.Channel.createMessage(
+        await this.context.channel.createMessage(
             'Here are the current permissions:\n', {
                 file: new Buffer(builder.toString(), 'utf8'),
-                name: `${this.Context.Guild.name} (${this.Context.Guild.id}) Permissions {DateTime.Now}.csv`,
+                name: `${this.context.guild.name} (${this.context.guild.id}) Permissions {DateTime.Now}.csv`,
             },
         );
     }
@@ -381,7 +381,7 @@ export default class extends AbstractPlugin {
     public async GrantMemberPermission(user: Member, node: string): Promise<void> {
         await this.FindAndChangeAllowed(PermissionType.User, user.id, node, true);
 
-        return await this.ReactOk();
+        return await this.reactOk();
     }
 
     @Decorator.Command('grant role', 'Grants a role a permission')
@@ -390,7 +390,7 @@ export default class extends AbstractPlugin {
     public async GrantRolePermission(role: Role, @Decorator.Remainder() node: string): Promise<void> {
         await this.FindAndChangeAllowed(PermissionType.Role, role.id, node, true);
 
-        return await this.ReactOk();
+        return await this.reactOk();
     }
 
     @Decorator.Command('revoke member', 'Revokes a user from a permission')
@@ -399,7 +399,7 @@ export default class extends AbstractPlugin {
     public async RevokeMemberPermission(user: Member, @Decorator.Remainder() node: string): Promise<void> {
         await this.FindAndChangeAllowed(PermissionType.User, user.id, node, false);
 
-        return await this.ReactOk();
+        return await this.reactOk();
     }
 
     @Decorator.Command('revoke role', 'Revokes a role from a permission')
@@ -408,75 +408,75 @@ export default class extends AbstractPlugin {
     public async RevokeRolePermission(role: Role, node: string): Promise<void> {
         await this.FindAndChangeAllowed(PermissionType.Role, role.id, node, false);
 
-        return await this.ReactOk();
+        return await this.reactOk();
     }
 
-    @Decorator.Command('delperm member', "Deletes a user's permission")
+    @Decorator.Command('delperm member', 'Deletes a user\'s permission')
     @Decorator.Permission('Owner')
     @Decorator.Types({user: Member})
     public async DeleteMemberPermission(user: Member, node: string): Promise<void> {
-        const perm: Permission = await this.GetRepository<Permission>(Permission).findOne(
+        const perm: Permission = await this.getRepository<Permission>(Permission).findOne(
             {
-                GuildId: this.Context.Guild.id,
-                Node:    node,
-                Type:    PermissionType.User,
-                TypeId:  user.id,
+                guildId: this.context.guild.id,
+                type:    PermissionType.User,
+                typeId:  user.id,
+                node,
             },
         );
 
         if (perm) {
-            await this.GetRepository(Permission).remove(perm);
-            await this.authorizer.Initialize();
+            await this.getRepository(Permission).remove(perm);
+            await this.authorizer.initialize();
         }
 
-        return await this.ReactOk();
+        return await this.reactOk();
     }
 
-    @Decorator.Command('delperm role', "Deletes a role's permission")
+    @Decorator.Command('delperm role', 'Deletes a role\'s permission')
     @Decorator.Permission('Owner')
     @Decorator.Types({role: Role})
     public async DeleteRolePermission(role: Role, node: string): Promise<void> {
-        const perm: Permission = await this.GetRepository<Permission>(Permission).findOne(
+        const perm: Permission = await this.getRepository<Permission>(Permission).findOne(
             {
-                GuildId: this.Context.Guild.id,
-                Node:    node,
-                Type:    PermissionType.Role,
-                TypeId:  role.id,
+                guildId: this.context.guild.id,
+                type:    PermissionType.Role,
+                typeId:  role.id,
+                node,
             },
         );
 
         if (perm) {
-            await this.GetRepository(Permission).remove(perm);
-            await this.authorizer.Initialize();
+            await this.getRepository(Permission).remove(perm);
+            await this.authorizer.initialize();
         }
 
-        return await this.ReactOk();
+        return await this.reactOk();
     }
 
     private async FindAndChangeAllowed(
         type: PermissionType, id: string, node: string, allowed: boolean,
     ): Promise<void> {
-        let perm: Permission = await this.GetRepository<Permission>(Permission).findOne(
+        let perm: Permission = await this.getRepository<Permission>(Permission).findOne(
             {
-                GuildId: this.Context.Guild.id,
-                Node:    node,
-                Type:    type,
-                TypeId:  id,
+                guildId: this.context.guild.id,
+                typeId:  id,
+                type,
+                node,
             },
         );
 
         if (!perm) {
             perm         = new Permission();
-            perm.Type    = type;
-            perm.TypeId  = id;
-            perm.GuildId = this.Context.Guild.id;
-            perm.Node    = node;
+            perm.type    = type;
+            perm.typeId  = id;
+            perm.guildId = this.context.guild.id;
+            perm.node    = node;
         }
 
-        perm.Allowed = allowed;
+        perm.allowed = allowed;
 
-        await this.GetRepository(Permission).save(perm);
-        await this.authorizer.Initialize();
+        await this.getRepository(Permission).save(perm);
+        await this.authorizer.initialize();
     }
 };
 

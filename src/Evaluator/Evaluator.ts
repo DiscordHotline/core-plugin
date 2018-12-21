@@ -28,16 +28,12 @@ run.apply(this)`;
     }
 
     @inject('Container')
-    private _container: Container;
+    private container: Container;
 
-    @inject(CFTypes.Logger)
-    private _logger: LoggerInterface;
+    @inject(CFTypes.logger)
+    private llogger: LoggerInterface;
 
     public async Evaluate(code: string, customContext: any = {}): Promise<IEvaluationResult> {
-        await (async () => {
-
-        })();
-
         return new Promise(
             (resolve, reject) => {
                 try {
@@ -56,7 +52,7 @@ run.apply(this)`;
 
                     script.runInContext(context, {displayErrors: true, timeout: 600000});
                 } catch (error) {
-                    this._logger.error(error);
+                    this.llogger.error(error);
                     reject(error);
                 }
             },
@@ -66,8 +62,8 @@ run.apply(this)`;
     private GetDefaultContext(): any {
         return {
             require: req,
-            container: this._container,
-            client: this._container.get<Client>(CFTypes.DiscordClient),
+            container: this.container,
+            client: this.container.get<Client>(CFTypes.discordClient),
         };
     }
 };
