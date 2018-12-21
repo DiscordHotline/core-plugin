@@ -126,11 +126,11 @@ export default class extends AbstractPlugin {
                 if (!commands.hasOwnProperty(cmdName)) {
                     continue;
                 }
-                const command: any = commands[cmdName][0];
+                const command: CommandInfo = commands[cmdName][0];
 
-                pluginBuilder.append(` **${this.prefix}${command.Aliases[0]}**`);
-                if (command.ShortDescription) {
-                    pluginBuilder.append(' - ' + command.ShortDescription);
+                pluginBuilder.append(` **${this.prefix}${command.aliases[0]}**`);
+                if (command.shortDescription) {
+                    pluginBuilder.append(' - ' + command.shortDescription);
                 }
                 pluginBuilder.appendLine();
             }
