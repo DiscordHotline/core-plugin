@@ -1,11 +1,11 @@
-import {Message, User} from 'eris';
+import {Member, Message, Role, User} from 'eris';
 import {AbstractPlugin, CommandService, types as CFTypes} from 'eris-command-framework';
 import StringBuilder from 'eris-command-framework/Builder/StringBuilder';
 import Decorator from 'eris-command-framework/Decorator';
+import {default as Permission, PermissionType} from 'eris-command-framework/Entity/Permission';
 import CommandInfo from 'eris-command-framework/Info/CommandInfo';
 import SearchResult from 'eris-command-framework/Result/SearchResult';
 import Authorizer from 'eris-command-framework/Security/Authorizer';
-
 import {Container, inject, injectable} from 'inversify';
 import {List} from 'linqts';
 import {Dictionary} from 'typescript-collections';
@@ -54,7 +54,7 @@ export default class extends AbstractPlugin {
     }
 
     @Decorator.Command('help', 'Replies with this. If a command is specified, returns specific help.')
-    public async HelpCommand(@Decorator.Remainder commandName: string = null): Promise<any> {
+    public async HelpCommand(@Decorator.Remainder() commandName: string = null): Promise<any> {
         let builder: StringBuilder = new StringBuilder();
 
         if (commandName !== null) {
@@ -203,7 +203,8 @@ export default class extends AbstractPlugin {
 
     @Decorator.Command('eval', 'Runs code')
     @Decorator.Permission('Owner')
-    public async EvalCommand(@Decorator.Remainder code: string): Promise<void> {
+    public async EvalCommand(@Decorator.Remainder() code: string): Promise<void> {
+        console.log(code);
         let found: RegExpMatchArray = code.match(/^```[a-z]*\n([\s\S]*)?\n```$/);
         if (found) {
             code = found[1];
@@ -325,6 +326,157 @@ export default class extends AbstractPlugin {
             );
         };
         this.Client.on('messageCreate', repl);
+    }
+
+    @Decorator.Command('permnodes', 'Lists all permission nodes')
+    @Decorator.Permission('Owner')
+    public async PermissionNodesCommand(): Promise<void> {
+        const builder: StringBuilder     = new StringBuilder(['```\n']);
+        const searchResult: SearchResult = await this.commands.SearchAsync(this.Context);
+
+        if (!searchResult.IsSuccess) {
+            return await this.ReactNotOk();
+        }
+
+        const nodes: string[] = [];
+        for (let command of searchResult.Commands) {
+            if (command.PermissionNode && !nodes.find((x) => x === command.PermissionNode)) {
+                nodes.push(command.PermissionNode);
+                builder.AppendLine(command.PermissionNode);
+            }
+        }
+
+        await this.Reply(builder.toString() + '\n```');
+    }
+
+    @Decorator.Command('perms', 'Lists all current permissions')
+    @Decorator.Permission('Owner')
+    public async ListPermissionsCommand(): Promise<void> {
+        const perms: Permission[] = (await this.GetRepository<Permission>(Permission)
+                                                     .find({GuildId: this.Context.Guild.id}))
+            .sort((a, b) => a.TypeId > b.TypeId ? 1 : -1);
+
+        if (perms.length === 0) {
+            return await this.Reply('There are currently no permissions here.');
+        }
+
+        const builder: StringBuilder = new StringBuilder();
+        builder.AppendLine('Index,Type,Discord ID,Node,Allowed');
+        for (let i: number = 0; i < perms.length; i++) {
+            let perm: any = perms[i];
+            builder.AppendLine(`${i + 1},${perm.Type},="${perm.TypeId}",${perm.Node},${perm.Allowed ? 'Yes' : 'No'}`);
+        }
+
+        await this.Context.Channel.createMessage(
+            'Here are the current permissions:\n', {
+                file: new Buffer(builder.toString(), 'utf8'),
+                name: `${this.Context.Guild.name} (${this.Context.Guild.id}) Permissions {DateTime.Now}.csv`,
+            },
+        );
+    }
+
+    @Decorator.Command('grant member', 'Grants a user a permission')
+    @Decorator.Permission('Owner')
+    @Decorator.Types({user: Member})
+    public async GrantMemberPermission(user: Member, node: string): Promise<void> {
+        await this.FindAndChangeAllowed(PermissionType.User, user.id, node, true);
+
+        return await this.ReactOk();
+    }
+
+    @Decorator.Command('grant role', 'Grants a role a permission')
+    @Decorator.Permission('Owner')
+    @Decorator.Types({role: Role})
+    public async GrantRolePermission(role: Role, @Decorator.Remainder() node: string): Promise<void> {
+        await this.FindAndChangeAllowed(PermissionType.Role, role.id, node, true);
+
+        return await this.ReactOk();
+    }
+
+    @Decorator.Command('revoke member', 'Revokes a user from a permission')
+    @Decorator.Permission('Owner')
+    @Decorator.Types({user: Member})
+    public async RevokeMemberPermission(user: Member, @Decorator.Remainder() node: string): Promise<void> {
+        await this.FindAndChangeAllowed(PermissionType.User, user.id, node, false);
+
+        return await this.ReactOk();
+    }
+
+    @Decorator.Command('revoke role', 'Revokes a role from a permission')
+    @Decorator.Permission('Owner')
+    @Decorator.Types({role: Role})
+    public async RevokeRolePermission(role: Role, node: string): Promise<void> {
+        await this.FindAndChangeAllowed(PermissionType.Role, role.id, node, false);
+
+        return await this.ReactOk();
+    }
+
+    @Decorator.Command('delperm member', "Deletes a user's permission")
+    @Decorator.Permission('Owner')
+    @Decorator.Types({user: Member})
+    public async DeleteMemberPermission(user: Member, node: string): Promise<void> {
+        const perm: Permission = await this.GetRepository<Permission>(Permission).findOne(
+            {
+                GuildId: this.Context.Guild.id,
+                Node:    node,
+                Type:    PermissionType.User,
+                TypeId:  user.id,
+            },
+        );
+
+        if (perm) {
+            await this.GetRepository(Permission).remove(perm);
+            await this.authorizer.Initialize();
+        }
+
+        return await this.ReactOk();
+    }
+
+    @Decorator.Command('delperm role', "Deletes a role's permission")
+    @Decorator.Permission('Owner')
+    @Decorator.Types({role: Role})
+    public async DeleteRolePermission(role: Role, node: string): Promise<void> {
+        const perm: Permission = await this.GetRepository<Permission>(Permission).findOne(
+            {
+                GuildId: this.Context.Guild.id,
+                Node:    node,
+                Type:    PermissionType.Role,
+                TypeId:  role.id,
+            },
+        );
+
+        if (perm) {
+            await this.GetRepository(Permission).remove(perm);
+            await this.authorizer.Initialize();
+        }
+
+        return await this.ReactOk();
+    }
+
+    private async FindAndChangeAllowed(
+        type: PermissionType, id: string, node: string, allowed: boolean,
+    ): Promise<void> {
+        let perm: Permission = await this.GetRepository<Permission>(Permission).findOne(
+            {
+                GuildId: this.Context.Guild.id,
+                Node:    node,
+                Type:    type,
+                TypeId:  id,
+            },
+        );
+
+        if (!perm) {
+            perm         = new Permission();
+            perm.Type    = type;
+            perm.TypeId  = id;
+            perm.GuildId = this.Context.Guild.id;
+            perm.Node    = node;
+        }
+
+        perm.Allowed = allowed;
+
+        await this.GetRepository(Permission).save(perm);
+        await this.authorizer.Initialize();
     }
 };
 
