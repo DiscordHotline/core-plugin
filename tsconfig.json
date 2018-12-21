@@ -1,5 +1,4 @@
 {
-    "compileOnSave":   false,
     "compilerOptions": {
         "target":                       "es2017",
         "module":                       "commonjs",
@@ -10,6 +9,7 @@
         "noUnusedLocals":               true,
         "noUnusedParameters":           true,
         "removeComments":               false,
+        "declaration":                  true,
         "preserveConstEnums":           true,
         "sourceMap":                    true,
         "skipLibCheck":                 true,
@@ -18,7 +18,6 @@
         "emitDecoratorMetadata":        true,
         "noImplicitAny":                false,
         "outDir":                       "dist/",
-        "pretty":                       true,
         "lib":                          [
             "es2017.object",
             "es2015",
