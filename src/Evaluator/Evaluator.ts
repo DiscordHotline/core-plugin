@@ -38,7 +38,7 @@ run.apply(this)`;
             (resolve, reject) => {
                 try {
                     let contextBuilder: any = Object.assign({}, this.GetDefaultContext(), customContext);
-                    contextBuilder.callback = function (error) {
+                    contextBuilder.callback = function(error) {
                         if (error) {
                             return reject(error);
                         }
@@ -47,8 +47,8 @@ run.apply(this)`;
                     };
 
                     const context: vm.Context = vm.createContext(contextBuilder);
-                    const asyncCode = Evaluator.WrapCode(code);
-                    const script: vm.Script = new vm.Script(asyncCode);
+                    const asyncCode           = Evaluator.WrapCode(code);
+                    const script: vm.Script   = new vm.Script(asyncCode);
 
                     script.runInContext(context, {displayErrors: true, timeout: 600000});
                 } catch (error) {
@@ -61,9 +61,13 @@ run.apply(this)`;
 
     private GetDefaultContext(): any {
         return {
-            require: req,
+            require:   req,
             container: this.container,
-            client: this.container.get<Client>(CFTypes.discordClient),
+            client:    this.container.get<Client>(CFTypes.discordClient),
+            types:     {
+                Types:   this.container.get('Types'),
+                CFTypes: this.container.get('CFTypes'),
+            },
         };
     }
 };
