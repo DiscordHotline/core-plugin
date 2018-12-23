@@ -11,4 +11,7 @@ install:
     - npm-install-peers
 
 script:
-    - npm run build && npx semantic-release -e @semantic-release/npm
+    - npm run build
+
+after_success:
+    - npx semantic-release -e @semantic-release/npm
