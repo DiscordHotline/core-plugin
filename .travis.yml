@@ -4,6 +4,7 @@ node_js:
     - "10"
 
 sudo: false
+if: tag is blank
 
 install:
     - npm i
