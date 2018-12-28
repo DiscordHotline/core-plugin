@@ -22,7 +22,7 @@
     "peerDependencies": {
         "eris": "^0.9",
         "linqts": "^1.12.2",
-        "eris-command-framework": "^2.0"
+        "eris-command-framework": "^2.1"
     },
     "dependencies": {
         "require-context": "^1.1.0"

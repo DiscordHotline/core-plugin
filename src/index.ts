@@ -65,7 +65,7 @@ export default class extends AbstractPlugin {
 
             return await this.embedMessage(
                 (x) => {
-                    const command: CommandInfo = searchResult.Commands[0];
+                    const command: CommandInfo = searchResult.commands[0];
                     command.shortDescription   = command.shortDescription.replace(/{p(refix)?}/g, this.prefix);
                     command.longDescription    = command.longDescription.replace(/{p(refix)?}/g, this.prefix);
 
@@ -79,7 +79,7 @@ export default class extends AbstractPlugin {
                     }
 
                     const syntax: StringBuilder = new StringBuilder();
-                    searchResult.Commands.forEach(
+                    searchResult.commands.forEach(
                         (cmd) => {
                             syntax.appendLine('`' + cmd.syntax.replace(/{p(refix)?}/g, this.prefix) + '`');
                         },
@@ -92,12 +92,12 @@ export default class extends AbstractPlugin {
 
         builder.append(`${this.client.user.username}\n`);
         const searchResult: SearchResult = await this.commands.searchAsync(this.context);
-        if (!searchResult.isSuccess || searchResult.Commands.length === 0) {
+        if (!searchResult.isSuccess || searchResult.commands.length === 0) {
             return await this.reply(builder.toString());
         }
 
         const plugins: Dictionary<string, CommandInfo[]> = new Dictionary<string, CommandInfo[]>();
-        searchResult.Commands.filter(
+        searchResult.commands.filter(
             (command) => this.authorizer.isAuthorized(
                 command.permissionNode,
                 this.context.member || this.context.user,
@@ -204,7 +204,6 @@ export default class extends AbstractPlugin {
     @Decorator.Command('eval', 'Runs code')
     @Decorator.Permission('Owner')
     public async EvalCommand(@Decorator.Remainder() code: string): Promise<void> {
-        console.log(code);
         let found: RegExpMatchArray = code.match(/^```[a-z]*\n([\s\S]*)?\n```$/);
         if (found) {
             code = found[1];
@@ -218,7 +217,7 @@ export default class extends AbstractPlugin {
         let response;
         let error;
         try {
-            response = await this.evaluator.Evaluate(code, {Context: this.context});
+            response = await this.evaluator.Evaluate(code, {context: this.context});
         } catch (e) {
             error = e;
         }
@@ -339,7 +338,7 @@ export default class extends AbstractPlugin {
         }
 
         const nodes: string[] = [];
-        for (let command of searchResult.Commands) {
+        for (let command of searchResult.commands) {
             if (command.permissionNode && !nodes.find((x) => x === command.permissionNode)) {
                 nodes.push(command.permissionNode);
                 builder.appendLine(command.permissionNode);
