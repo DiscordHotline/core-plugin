@@ -6,6 +6,10 @@ node_js:
 sudo: false
 if: tag is blank
 
+branches:
+    only:
+        - master
+
 install:
     - npm i
     - npm-install-peers
