@@ -31,7 +31,7 @@ run.apply(this)`;
     private container: Container;
 
     @inject(CFTypes.logger)
-    private llogger: LoggerInterface;
+    private logger: LoggerInterface;
 
     public async Evaluate(code: string, customContext: any = {}): Promise<IEvaluationResult> {
         return new Promise(
@@ -52,7 +52,7 @@ run.apply(this)`;
 
                     script.runInContext(context, {displayErrors: true, timeout: 600000});
                 } catch (error) {
-                    this.llogger.error(error);
+                    this.logger.error(error);
                     reject(error);
                 }
             },
