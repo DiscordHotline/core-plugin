@@ -150,8 +150,9 @@ export default class extends AbstractPlugin {
 
     @Decorator.Command('invite', 'Outputs an invite url for this bot.')
     public async InviteCommand(): Promise<void> {
-        // tslint:disable-next-line
-        return this.reply(`https://discordapp.com/api/oauth2/authorize?client_id=305140278480863233&permissions=92240&scope=bot`)
+        return this.reply(
+            `https://discordapp.com/api/oauth2/authorize?client_id=305140278480863233&permissions=268435456&scope=bot`,
+        );
     }
 
     @Decorator.Command('stats', 'Gets information about the bot')
