@@ -151,7 +151,7 @@ export default class extends AbstractPlugin {
     @Decorator.Command('invite', 'Outputs an invite url for this bot.')
     public async InviteCommand(): Promise<void> {
         return this.reply(
-            `https://discordapp.com/api/oauth2/authorize?client_id=305140278480863233&permissions=268435456&scope=bot`,
+            `https://discordapp.com/api/oauth2/authorize?client_id=305140278480863233&scope=bot`,
         );
     }
 
