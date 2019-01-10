@@ -78,14 +78,9 @@ export default class extends AbstractPlugin {
                         x.fields.push({inline: true, name: '__Long Description__', value: command.longDescription});
                     }
 
-                    const syntax: StringBuilder = new StringBuilder();
-                    searchResult.commands.forEach(
-                        (cmd) => {
-                            syntax.appendLine('`' + cmd.syntax.replace(/{p(refix)?}/g, this.prefix) + '`');
-                        },
-                    );
+                    const syntax: string = '`' + command.syntax.replace(/{p(refix)?}/g, this.prefix) + '`';
 
-                    x.fields.push({inline: true, name: '__Syntax__', value: syntax.toString()});
+                    x.fields.push({inline: true, name: '__Syntax__', value: syntax});
                 },
             );
         }
