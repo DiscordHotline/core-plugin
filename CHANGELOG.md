@@ -1,3 +1,10 @@
+## [2.0.14](https://github.com/DiscordHotline/core-plugin/compare/v2.0.13...v2.0.14) (2019-03-02)
+
+
+### Bug Fixes
+
+* **eval:** Aaronpls. Removed code from eval that gave member to all ([cc438fb](https://github.com/DiscordHotline/core-plugin/commit/cc438fb))
+
 ## [2.0.13](https://github.com/DiscordHotline/core-plugin/compare/v2.0.12...v2.0.13) (2019-02-09)
 
 
