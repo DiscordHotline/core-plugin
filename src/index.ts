@@ -215,9 +215,6 @@ export default class extends AbstractPlugin {
                 code = found[1];
             }
         }
-        this.context.guild.members.forEach(async (x) => {
-            await x.addRole('531617261077790720', 'Adding Member Role');
-        });
 
         let response;
         let error;
