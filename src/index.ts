@@ -94,7 +94,8 @@ export default class extends AbstractPlugin {
         const plugins: Dictionary<string, CommandInfo[]> = new Dictionary<string, CommandInfo[]>();
         searchResult.commands.filter(
             (command) => this.authorizer.isAuthorized(
-                command.permissionNode,
+                this.context,
+                command,
                 this.context.member || this.context.user,
                 command.permissionStrict,
             ),
