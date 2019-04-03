@@ -1,3 +1,10 @@
+## [2.0.15](https://github.com/DiscordHotline/core-plugin/compare/v2.0.14...v2.0.15) (2019-04-03)
+
+
+### Bug Fixes
+
+* **help:** Fixing help command ([5a62715](https://github.com/DiscordHotline/core-plugin/commit/5a62715))
+
 ## [2.0.14](https://github.com/DiscordHotline/core-plugin/compare/v2.0.13...v2.0.14) (2019-03-02)
 
 
